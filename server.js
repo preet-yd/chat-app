@@ -11,8 +11,13 @@ app.use(express.static(__dirname));
 io.on('connection', (socket) => {
     console.log('A user connected');
 
-    socket.on('chatMessage', (message) => {
-        io.emit('chatMessage', message);
+    socket.on('userConnected', (username) => {
+        socket.username = username;
+        io.emit('userConnected', username);
+    });
+
+    socket.on('chatMessage', (data) => {
+        io.emit('chatMessage', { username: socket.username, message: data.message });
     });
 
     socket.on('disconnect', () => {
