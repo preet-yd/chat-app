@@ -35,6 +35,62 @@ function replaceEmojis(message) {
     }
     return message;
 }
+function handleSlashCommand(command, message) {
+    if (command === '/help') {
+        const helpMessage = `
+            Available commands:
+            /help - Display this help message
+            /clear - Clear all messages
+            /random - Generate a random number`;
+        alert(helpMessage + "\n\nYour message: " + message);
+    } else if (command === '/clear') {
+        clearMessages();
+    } else if (command === '/random') {
+        const randomNumber = Math.floor(Math.random() * 100); // Generate a random number between 0 and 99
+        displaySystemMessage(`Random number: ${randomNumber}`);
+    } else {
+        // Handle unknown command
+        alert("Unknown command: " + command);
+    }
+}
+
+
+function clearMessages() {
+    messages.innerHTML = ''; // Clear all messages
+}
+
+function displaySystemMessage(message) {
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('system-message');
+
+    const messageWithoutCommand = message.replace(/^\s*\/\w+\s*/, '');
+
+    messageElement.textContent = message;
+    messages.appendChild(messageElement);
+    messages.scrollTop = messages.scrollHeight;
+}
+
+
+sendButton.addEventListener('click', () => {
+    const message = messageInput.value;
+    
+    // Check if the message is a slash command
+    if (message.startsWith('/')) {
+        handleSlashCommand(message); // Handle the command
+    }
+    if (message.trim() !== '') {
+        const messageWithEmojis = replaceEmojis(message); // Replace emojis
+        socket.emit('chatMessage', { username, message: messageWithEmojis });
+        messageInput.value = ''; // Clear the input
+    }
+     else if (message.trim() !== '') {
+        messageInput.value = ''; // Clear the input
+        socket.emit('chatMessage', { username, message });
+    }
+});
+
+
+
 
 usernameSubmit.addEventListener('click', () => {
     let enteredUsername = usernameInput.value;  
@@ -53,14 +109,14 @@ socket.on('userConnected', (connectedUser) => {
 });
 
 
-sendButton.addEventListener('click', () => {
-    let message = messageInput.value;
-    if (message.trim() !== '') {
-        message = replaceEmojis(message);
-        socket.emit('chatMessage', { username, message });
-        messageInput.value = '';
-    }
-});
+// sendButton.addEventListener('click', () => {
+//     let message = messageInput.value;
+//     if (message.trim() !== '') {
+//         message = replaceEmojis(message);
+//         socket.emit('chatMessage', { username, message });
+//         messageInput.value = '';
+//     }
+// });
 
 socket.on('connect', () => {
     sendButton.disabled = false; // Enable the send button on connection
